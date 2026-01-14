@@ -62,16 +62,14 @@ export async function chatWithAgent(
   try {
     const apiKey = process.env.API_KEY;
     
-    // Check for missing or incorrectly defined API key
     if (!apiKey || apiKey === 'undefined' || apiKey === '') {
       throw new Error(
-        "CRITICAL SETUP ERROR: Gemini API Key is missing.\n\n" +
-        "FIX FOR VERCEL DEPLOYMENTS:\n" +
-        "1. Open your Vercel Dashboard for this project.\n" +
-        "2. Go to 'Settings' > 'Environment Variables'.\n" +
-        "3. Add Key: API_KEY | Value: [Your Key from AI Studio]\n" +
-        "4. Go to the 'Deployments' tab.\n" +
-        "5. Select your last deployment and click 'Redeploy' to apply changes."
+        "🛠️ CONFIGURATION REQUIRED: Your Gemini API Key is missing.\n\n" +
+        "TO FIX THIS ON VERCEL:\n" +
+        "1. Copy your key from aistudio.google.com\n" +
+        "2. Vercel Project -> Settings -> Environment Variables\n" +
+        "3. Add Key: API_KEY | Value: [Your Key]\n" +
+        "4. Go to Deployments -> Redeploy (Required to apply the key)."
       );
     }
 
