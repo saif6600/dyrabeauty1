@@ -6,7 +6,7 @@ import OfferModal from './components/OfferModal.tsx';
 import OwnerDashboard from './components/OwnerDashboard.tsx';
 import { Message, Role, AgentPersona, ModelType, Appointment, Promotion, Service } from './types.ts';
 import { PERSONAS, INITIAL_PROMOTIONS, SERVICE_MENU, SALON_CONFIG } from './constants.tsx';
-import { chatWithAgent } from './services/geminiService.ts';
+import { chatWithAgent, isApiKeyValid } from './services/geminiService.ts';
 
 const STORAGE_KEY_BOOKINGS = 'dyra_bookings_v2'; 
 const STORAGE_KEY_PROMOS = 'dyra_promos_v2';
@@ -49,13 +49,25 @@ export default function App() {
 
   const [messages, setMessages] = useState<Message[]>(() => {
     const isReturning = bookings.length > 0;
+    const keyMissing = !isApiKeyValid();
+    
+    if (keyMissing) {
+      return [{
+        id: 'error-key',
+        role: Role.AGENT,
+        content: `🚨 ATTENTION: API KEY NOT DETECTED\n\nI'm ready to assist you, but I cannot connect to Google's servers yet. \n\n1. Get your key from aistudio.google.com\n2. Add 'API_KEY' to your Vercel Environment Variables\n3. REDEPLOY your project on Vercel.\n\nOnce configured, I will be your luxury salon assistant! ✨`,
+        timestamp: new Date(),
+        isError: true
+      }];
+    }
+
     const name = isReturning ? bookings[bookings.length - 1].customerName : '';
     return [{
       id: 'welcome',
       role: Role.AGENT,
       content: isReturning 
-        ? `Welcome back to Dyra, ${name}! ✨ Ready for your next session of pampering?\n\n1️⃣ Quick Re-book\n2️⃣ Browse New Services\n3️⃣ View Your Offers\n4️⃣ Connect with Support\n5️⃣ See All Past Bookings`
-        : `Hello & Welcome to Dyra Beauty Parlour 🌸\n\nI'm Maya, your luxury salon assistant. Our systems are online and ready to assist you. How can I help you today?\n\n1️⃣ Reserve an Appointment\n2️⃣ Explore Services & Prices\n3️⃣ Exclusive Launch Offers\n4️⃣ Talk to Human Support\n5️⃣ Check Booking History`,
+        ? `Welcome back to Dyra, ${name}! ✨ Ready for your next session of pampering?\n\n1️⃣ Quick Re-book\n2️⃣ Browse New Services\n3️⃣ View Your Offers\n4️⃣ Connect with Support`
+        : `Hello & Welcome to Dyra Beauty Parlour 🌸\n\nI'm Maya, your luxury salon assistant. Our systems are online and ready to assist you. How can I help you today?\n\n1️⃣ Reserve an Appointment\n2️⃣ Explore Services & Prices\n3️⃣ Exclusive Launch Offers\n4️⃣ Talk to Human Support`,
       timestamp: new Date()
     }];
   });
@@ -86,14 +98,7 @@ export default function App() {
 
   const handleReset = useCallback(() => {
     if (window.confirm("This will clear your current session. Continue?")) {
-      setMessages([{
-        id: 'welcome',
-        role: Role.AGENT,
-        content: `System reset. I'm ready to assist you again.\n1. Book Appointment\n2. View Services\n3. Offers`,
-        timestamp: new Date()
-      }]);
-      setBookingState({});
-      setCurrentAgent(PERSONAS[0]);
+      window.location.reload();
     }
   }, []);
 
@@ -109,6 +114,11 @@ export default function App() {
   const handleSend = useCallback(async (overrideInput?: string) => {
     const messageToSend = overrideInput || input;
     if (!messageToSend.trim() || isLoading) return;
+
+    if (!isApiKeyValid()) {
+      alert("Missing API Key! Please check the instructions in the first chat message.");
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -218,17 +228,10 @@ export default function App() {
     } catch (error: any) {
       console.error("Chat Error:", error);
       
-      // Use the actual error message from the service if it relates to configuration
-      let errorText = error.message || `I'm currently experiencing high demand. Please try again in a moment.`;
-      
-      if (error.message?.includes("429")) {
-        errorText = "I'm receiving too many requests right now. Please wait a minute and try again.";
-      }
-
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: Role.AGENT,
-        content: errorText,
+        content: `Error: ${error.message || "Failed to connect to AI server. Please check your internet and API key."}`,
         timestamp: new Date(),
         isError: true
       }]);
@@ -328,7 +331,7 @@ export default function App() {
                 <div className="w-1 h-1 rounded-full bg-rose-400"></div>
                 <div className="w-1 h-1 rounded-full bg-rose-300"></div>
               </div>
-              {currentAgent.name} is connecting...
+              {currentAgent.name} is thinking...
             </div>
           )}
         </div>
@@ -341,13 +344,14 @@ export default function App() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder={`Tell ${currentAgent.name} what you're looking for...`}
+                placeholder={isApiKeyValid() ? `Tell ${currentAgent.name} what you're looking for...` : "Setup required - check instructions above"}
                 rows={1}
-                className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-4 resize-none custom-scrollbar placeholder:text-zinc-600 font-medium"
+                disabled={!isApiKeyValid()}
+                className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-4 resize-none custom-scrollbar placeholder:text-zinc-600 font-medium disabled:opacity-50"
               />
               <button 
                 onClick={() => handleSend()} 
-                disabled={!input.trim() || isLoading} 
+                disabled={!input.trim() || isLoading || !isApiKeyValid()} 
                 className="w-12 h-12 rounded-2xl bg-rose-600 flex items-center justify-center text-white hover:bg-rose-500 active:scale-90 transition-all shadow-lg shadow-rose-600/20 disabled:opacity-20 disabled:grayscale"
               >
                 <i className="fas fa-paper-plane text-sm"></i>

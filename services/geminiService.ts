@@ -52,6 +52,11 @@ const promoTool: FunctionDeclaration = {
   },
 };
 
+export function isApiKeyValid(): boolean {
+  const key = process.env.API_KEY;
+  return !!(key && key !== 'undefined' && key.length > 5);
+}
+
 export async function chatWithAgent(
   model: ModelType,
   history: { role: string; parts: { text: string }[] }[],
@@ -63,14 +68,7 @@ export async function chatWithAgent(
     const apiKey = process.env.API_KEY;
     
     if (!apiKey || apiKey === 'undefined' || apiKey === '') {
-      throw new Error(
-        "🛠️ CONFIGURATION REQUIRED: Your Gemini API Key is missing.\n\n" +
-        "TO FIX THIS ON VERCEL:\n" +
-        "1. Copy your key from aistudio.google.com\n" +
-        "2. Vercel Project -> Settings -> Environment Variables\n" +
-        "3. Add Key: API_KEY | Value: [Your Key]\n" +
-        "4. Go to Deployments -> Redeploy (Required to apply the key)."
-      );
+      throw new Error("MISSING_API_KEY");
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -94,6 +92,10 @@ export async function chatWithAgent(
       config,
     });
 
+    if (!response || !response.candidates || response.candidates.length === 0) {
+      throw new Error("Empty response from Gemini. Check if your query was blocked by safety filters.");
+    }
+
     return {
       text: response.text || "",
       groundingUrls: response.candidates?.[0]?.groundingMetadata?.groundingChunks
@@ -102,7 +104,20 @@ export async function chatWithAgent(
       toolCalls: response.functionCalls,
     };
   } catch (error: any) {
-    console.error("Gemini API Error Detail:", error);
+    console.error("Gemini Service Error:", error);
+    
+    if (error.message === "MISSING_API_KEY") {
+      throw new Error("API Key is missing. Please add API_KEY to your environment variables and redeploy.");
+    }
+    
+    if (error.message?.includes("429")) {
+      throw new Error("Rate limit exceeded. Please wait a moment before trying again.");
+    }
+
+    if (error.message?.includes("API key not valid")) {
+      throw new Error("The provided API key is invalid. Please check your AI Studio dashboard.");
+    }
+
     throw error;
   }
 }
@@ -110,7 +125,7 @@ export async function chatWithAgent(
 export async function generateImage(prompt: string): Promise<string> {
   try {
     const apiKey = process.env.API_KEY;
-    if (!apiKey || apiKey === 'undefined' || apiKey === '') throw new Error("API_KEY is missing");
+    if (!apiKey || apiKey === 'undefined' || apiKey === '') throw new Error("MISSING_API_KEY");
 
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({

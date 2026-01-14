@@ -2,6 +2,7 @@
 import React from 'react';
 import { PERSONAS } from '../constants.tsx';
 import { AgentPersona, Promotion, Appointment } from '../types.ts';
+import { isApiKeyValid } from '../services/geminiService.ts';
 
 interface SidebarProps {
   currentAgent: AgentPersona;
@@ -40,6 +41,8 @@ export default function Sidebar({
     name: lastBooking.customerName,
     phone: lastBooking.customerPhone
   } : null;
+
+  const keyValid = isApiKeyValid();
 
   const handleClearData = () => {
     if (window.confirm("Delete all locally saved bookings and offers? This cannot be undone.")) {
@@ -80,7 +83,22 @@ export default function Sidebar({
 
         <div className="flex-1 overflow-y-auto space-y-8 custom-scrollbar pb-6 pr-2">
           
-          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <div>
+             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.15em] px-2 mb-3">System Health</h3>
+             <div className={`p-3 rounded-2xl border flex items-center gap-3 ${keyValid ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                <div className={`w-2 h-2 rounded-full animate-pulse ${keyValid ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'}`}></div>
+                <div className="flex-1 min-w-0">
+                   <p className={`text-[10px] font-black uppercase tracking-widest ${keyValid ? 'text-emerald-500' : 'text-red-500'}`}>
+                      API: {keyValid ? 'Connected' : 'Missing Key'}
+                   </p>
+                   <p className="text-[9px] text-zinc-500 truncate">
+                      {keyValid ? 'Gemini 3 Flash Ready' : 'Setup Required in Vercel'}
+                   </p>
+                </div>
+             </div>
+          </div>
+
+          <div>
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.15em] px-2 mb-3">Customer Status</h3>
             {customerInfo ? (
               <div className="p-4 bg-zinc-800/60 rounded-2xl border border-white/5 shadow-2xl flex items-center gap-4 group hover:bg-zinc-800 transition-colors">
@@ -116,13 +134,6 @@ export default function Sidebar({
               >
                 <i className="fas fa-book-medical group-hover:scale-110 transition-transform"></i>
                 <span className="text-[11px] font-black uppercase tracking-widest">Open Developer Book</span>
-              </button>
-              <button 
-                onClick={onOpenOfferModal}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-all text-left"
-              >
-                <i className="fas fa-plus text-zinc-500"></i>
-                <span className="text-[11px] font-black uppercase tracking-widest">Create New Offer</span>
               </button>
             </div>
           </div>
