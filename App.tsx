@@ -122,13 +122,18 @@ export default function App() {
     setIsLoading(true);
 
     try {
-      const history = messages
+      // CRITICAL: Gemini history MUST start with a 'user' message. 
+      // We skip the initial greeting 'model' message if it's the first in history.
+      const rawHistory = messages
         .filter(m => !m.isError)
         .slice(-10)
         .map(m => ({
           role: m.role === Role.USER ? 'user' : 'model',
           parts: [{ text: m.content }]
         }));
+      
+      const firstUserIndex = rawHistory.findIndex(h => h.role === 'user');
+      const history = firstUserIndex === -1 ? [] : rawHistory.slice(firstUserIndex);
 
       const currentService = SERVICE_MENU.find(s => messageToSend.toLowerCase().includes(s.name.toLowerCase()))?.name || bookingState.service;
       const currentDate = /\d{2}-\d{2}/.test(messageToSend) ? messageToSend : bookingState.date;
@@ -213,10 +218,19 @@ export default function App() {
 
       setMessages(prev => [...prev, agentResponse]);
     } catch (error: any) {
+      console.error("Chat Error:", error);
+      let errorText = `I'm currently experiencing high demand. Please try again in a moment.`;
+      
+      if (error.message?.includes("API_KEY")) {
+        errorText = "System Error: The Gemini API Key is missing. Please check your environment variables (API_KEY).";
+      } else if (error.message?.includes("429")) {
+        errorText = "I'm receiving too many requests right now. Please wait a minute and try again.";
+      }
+
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: Role.AGENT,
-        content: `I'm currently experiencing high demand. Please try again in a moment.`,
+        content: errorText,
         timestamp: new Date(),
         isError: true
       }]);

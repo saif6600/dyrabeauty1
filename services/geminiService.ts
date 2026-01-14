@@ -60,7 +60,12 @@ export async function chatWithAgent(
   useSearch: boolean = false
 ): Promise<{ text: string; groundingUrls?: { uri: string; title: string }[], toolCalls?: any[] }> {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey || apiKey === 'undefined') {
+      throw new Error("API_KEY is missing. Please set the API_KEY environment variable in your project settings.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
 
     const tools = useSearch 
       ? [{ googleSearch: {} }] 
@@ -89,14 +94,17 @@ export async function chatWithAgent(
       toolCalls: response.functionCalls,
     };
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
-    throw new Error(error.message || "An error occurred.");
+    console.error("Gemini API Error Detail:", error);
+    throw error;
   }
 }
 
 export async function generateImage(prompt: string): Promise<string> {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) throw new Error("API_KEY is missing");
+
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: ModelType.IMAGE,
       contents: {
