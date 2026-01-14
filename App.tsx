@@ -122,8 +122,6 @@ export default function App() {
     setIsLoading(true);
 
     try {
-      // CRITICAL: Gemini history MUST start with a 'user' message. 
-      // We skip the initial greeting 'model' message if it's the first in history.
       const rawHistory = messages
         .filter(m => !m.isError)
         .slice(-10)
@@ -219,11 +217,11 @@ export default function App() {
       setMessages(prev => [...prev, agentResponse]);
     } catch (error: any) {
       console.error("Chat Error:", error);
-      let errorText = `I'm currently experiencing high demand. Please try again in a moment.`;
       
-      if (error.message?.includes("API_KEY")) {
-        errorText = "System Error: The Gemini API Key is missing. Please check your environment variables (API_KEY).";
-      } else if (error.message?.includes("429")) {
+      // Use the actual error message from the service if it relates to configuration
+      let errorText = error.message || `I'm currently experiencing high demand. Please try again in a moment.`;
+      
+      if (error.message?.includes("429")) {
         errorText = "I'm receiving too many requests right now. Please wait a minute and try again.";
       }
 
