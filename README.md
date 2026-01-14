@@ -1,11 +1,21 @@
-<div align="center">
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+# 🌸 Dyra AI - Launch Guide
 
-  <h1>Built with AI Studio</h2>
+### 1. Push to GitHub
+Upload these files to a new GitHub repository named `dyra-ai`.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+### 2. Connect to Vercel
+1. Go to [Vercel.com](https://vercel.com) and import your repository.
+2. **Environment Variables (CRITICAL)**:
+   - Add a variable named `API_KEY`.
+   - Paste your key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+3. Click **Deploy**.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+### 3. Set Your Number
+Once your site is live (e.g., `dyra-ai.vercel.app`):
+1. Open the site.
+2. Go to **Sidebar** > **Open Developer Book**.
+3. Update your **WhatsApp Number** and **Save**.
+4. Now, every booking will come directly to your phone!
 
-</div>
+Success! Your luxury salon is now powered by AI. 🚀

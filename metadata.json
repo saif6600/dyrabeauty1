@@ -1,0 +1,13 @@
+{
+  "name": "Dyra AI",
+  "short_name": "Dyra",
+  "description": "Luxury Beauty Parlour Assistant - Expert booking and personalized beauty consultations.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "theme_color": "#09090b",
+  "background_color": "#09090b",
+  "display": "standalone",
+  "orientation": "portrait"
+}
