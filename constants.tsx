@@ -9,14 +9,14 @@ export const SALON_CONFIG = {
   // 1. YOUR WHATSAPP NUMBER (To receive booking messages)
   // Format: CountryCode + Number (Example: 919876543210)
   // IMPORTANT: No '+' sign, no spaces, only digits.
-  whatsappNumber: '919876543210', 
+  whatsappNumber: '917057656600', 
 
   // 2. YOUR DISPLAY PHONE (What customers see in text)
-  ownerPhone: '+91 98765 43210', 
+  ownerPhone: '+91 7057656600', 
 
   // 3. YOUR WHATSAPP LINK (Used for the support button)
   // Replace the number part with your digits only number
-  whatsappLink: 'https://wa.me/919876543210',
+  whatsappLink: 'https://wa.me/917057656600',
 
   // 4. YOUR BUSINESS ADDRESS
   address: 'Luxury Square, Mumbai, India'
